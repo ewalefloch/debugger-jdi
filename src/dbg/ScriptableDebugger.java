@@ -9,11 +9,13 @@ import com.sun.jdi.event.*;
 import com.sun.jdi.request.BreakpointRequest;
 import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.Location;
-import com.sun.jdi.request.StepRequest;
+import dbg.command.*;
+import dbg.log.Logger;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -21,6 +23,8 @@ public class ScriptableDebugger {
 
     private Class debugClass;
     private VirtualMachine vm;
+    private Event currentEvent;
+    private Intepreter intepreter;
 
     public VirtualMachine connectAndLaunchVM() throws IOException, IllegalConnectorArgumentsException, VMStartException {
         LaunchingConnector launchingConnector = Bootstrap.virtualMachineManager().defaultConnector();
@@ -30,7 +34,6 @@ public class ScriptableDebugger {
         return vm;
     }
     public void attachTo(Class debuggeeClass) {
-
         this.debugClass = debuggeeClass;
         try {
             vm = connectAndLaunchVM();
@@ -45,7 +48,7 @@ public class ScriptableDebugger {
             e.printStackTrace();
             System.out.println(e.toString());
         } catch (VMDisconnectedException e) {
-            System.out.println("Virtual Machine is disconnected: " + e.toString());
+            Logger.log("Virtual Machine is disconnected: " + e.toString());
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -58,13 +61,14 @@ public class ScriptableDebugger {
         classPrepareRequest.enable();
     }
 
-    public void startDebugger() throws VMDisconnectedException, InterruptedException {
+    public void startDebugger() throws VMDisconnectedException, InterruptedException, AbsentInformationException {
         EventSet eventSet = null;
+        intepreter = new Intepreter(this);
         while ((eventSet = vm.eventQueue().remove()) != null) {
             for (Event event : eventSet) {
                 System.out.println(event.toString());
                 if (event instanceof VMDisconnectEvent ) {
-                    System.out.println( "End of program " );
+                    Logger.log( "End of program " );
                     InputStreamReader reader =
                             new InputStreamReader (vm.process( ).getInputStream( ));
                     OutputStreamWriter writer = new OutputStreamWriter (System.out);
@@ -72,65 +76,75 @@ public class ScriptableDebugger {
                         reader.transferTo(writer);
                         writer.flush( );
                     }catch(IOException e ) {
-                        System.out.println( " Target VM input stream reading error.");
+                        Logger.log( " Target VM input stream reading error.");
                     }
+                    Logger.saveLogFile();
                    return;
                 }
 
                 if(event instanceof ClassPrepareEvent) {
                     setBreakPoint(debugClass.getName(),6);
-                }
-
-                if(event instanceof BreakpointEvent) {
-                    stepCommand((LocatableEvent) event);
+                    setBreakPoint(debugClass.getName(),10);
                 }
 
                 if (event instanceof StepEvent) {
                     vm.eventRequestManager().deleteEventRequest(
                             event.request()
                     );
-                    stepCommand((LocatableEvent) event);
+                }
+                if (event instanceof LocatableEvent){
+                    currentEvent = event;
+
+                    processCommand();
+                }
+
+                if (event instanceof BreakpointEvent) {
+                    BreakpointRequest bpReq = (BreakpointRequest) event.request();
+                    if (bpReq.getProperty("break-once") != null) {
+                        vm.eventRequestManager().deleteEventRequest(bpReq);
+                        System.out.println("Breakpoint unique supprimé.");
+                    }
                 }
 
                 vm.resume();
             }
         }
-
     }
 
-    public void enableStepRequests(LocatableEvent event) {
-        StepRequest stepRequest =
-                vm. eventRequestManager().
-                        createStepRequest ( event.thread(),
-                StepRequest.STEP_MIN,
-                StepRequest.STEP_OVER) ;
-        stepRequest.enable();
-    }
-
-    public void setBreakPoint (String className , int lineNumber ) {
+    public BreakpointRequest setBreakPoint (String className , int lineNumber ) throws AbsentInformationException {
         for ( ReferenceType targetClass : vm.allClasses())
             if(targetClass.name().equals(className)){
-                Location location =
-                        null;
-                try {
-                    location = targetClass.locationsOfLine(lineNumber).get(0);
-                } catch (AbsentInformationException e) {
-                    throw new RuntimeException(e);
-                }
-                BreakpointRequest bpReq =
-                    vm.eventRequestManager ( ).createBreakpointRequest(location);
+                Location location = targetClass.locationsOfLine(lineNumber).get(0);
+                BreakpointRequest bpReq = vm.eventRequestManager().createBreakpointRequest(location);
             bpReq.enable();
+            return bpReq;
+        }
+        return null;
+    }
+
+    public void processCommand() {
+        Scanner sc = new Scanner(System.in);
+
+        boolean keepWaiting = true;
+
+        while (keepWaiting) {
+            System.out.print("Command > ");
+            if (sc.hasNextLine()) {
+                String input = sc.nextLine();
+                String[] parts = input.split(" ");
+                String commandKey = parts[0].toLowerCase();
+
+                keepWaiting = intepreter.execute(commandKey,parts);
+
+            }
         }
     }
 
-    public void stepCommand(LocatableEvent event) {
-        System.out.print("Command > ");
-        Scanner sc = new Scanner(System.in);
-        String command = sc.nextLine();
+    public VirtualMachine getVM() {
+        return this.vm;
+    }
 
-        if (command.equals("step")) {
-            enableStepRequests(event);
-        }
-
+    public Event getEvent() {
+        return this.currentEvent;
     }
 }
