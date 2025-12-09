@@ -1,6 +1,7 @@
 package dbg;
 
 import dbg.command.*;
+import dbg.model.DebugModel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,10 +15,10 @@ public class Intepreter {
         initCommand();
     }
 
-    public boolean execute(String key,String[] args){
+    public boolean execute(DebugModel model, String key, String[] args){
         if (commandMap.containsKey(key)) {
             Command cmd = commandMap.get(key);
-            cmd.execute(args);
+            cmd.execute(model,args);
             return cmd.keepWaiting();
         } else {
             System.out.println("Commande inconnue.");

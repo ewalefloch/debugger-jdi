@@ -6,6 +6,7 @@ import com.sun.jdi.event.LocatableEvent;
 import com.sun.jdi.request.StepRequest;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 public class FrameCommand implements Command{
     private final ScriptableDebugger debugger;
@@ -15,7 +16,7 @@ public class FrameCommand implements Command{
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         LocatableEvent event = (LocatableEvent) debugger.getEvent();
         try {
             StackFrame frame = event.thread().frame(0);
@@ -23,7 +24,7 @@ public class FrameCommand implements Command{
                     + frame.location().declaringType().name() + "."
                     + frame.location().method().name() + ":"
                     + frame.location().lineNumber());
-            return frame;
+            model.setCurrentFrame(frame);
         } catch (IncompatibleThreadStateException e) {
             throw new RuntimeException(e);
         }

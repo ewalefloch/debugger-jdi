@@ -4,6 +4,7 @@ import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.StackFrame;
 import com.sun.jdi.event.LocatableEvent;
 import dbg.ScriptableDebugger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class ReceiverCommand implements Command{
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         LocatableEvent event = (LocatableEvent) debugger.getEvent();
         StackFrame frame = null;
         try {
@@ -24,7 +25,7 @@ public class ReceiverCommand implements Command{
         } catch (IncompatibleThreadStateException e) {
             throw new RuntimeException(e);
         }
-        return frame.thisObject();
+        model.setCurrentReceiver(frame.thisObject());
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.sun.jdi.StackFrame;
 import com.sun.jdi.event.LocatableEvent;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 public class MethodCommand implements Command{
     private final ScriptableDebugger debugger;
@@ -15,11 +16,10 @@ public class MethodCommand implements Command{
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
             Location location = ((LocatableEvent) debugger.getEvent()).location();
             Logger.log("Method : " +location.method().name());
-            return location.method().name();
-
+            model.setCurrentMethod(location.method().name());
     }
 
     @Override

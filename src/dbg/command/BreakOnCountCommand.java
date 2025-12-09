@@ -4,6 +4,7 @@ import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.request.BreakpointRequest;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 public class BreakOnCountCommand implements Command {
     private final ScriptableDebugger debugger;
@@ -16,9 +17,9 @@ public class BreakOnCountCommand implements Command {
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         if (args.length < 4) {
-            return null;
+            return;
         }
 
         String className = args[1];
@@ -41,8 +42,6 @@ public class BreakOnCountCommand implements Command {
 
             Logger.log("Breakpoint configuré sur " + className + ":" + lineNumber + " (activé au " + count + "ème passage).");
         }
-
-        return bpReq;
     }
 
     @Override

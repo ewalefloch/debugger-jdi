@@ -3,6 +3,7 @@ package dbg.command;
 import com.sun.jdi.*;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 import java.util.Map;
@@ -16,8 +17,12 @@ public class TemporariesCommand implements Command{
     }
 
     @Override
-    public Object execute(String[] args) {
-        StackFrame frame = (StackFrame) new FrameCommand(debugger).execute(args);
+    public void execute(DebugModel model, String[] args) {
+        StackFrame frame = model.getCurrentFrame();
+        if (frame == null) {
+            Logger.log("Pas de frame");
+            return;
+        }
         try {
             List<LocalVariable> variables = frame.visibleVariables();
             Map<LocalVariable, Value> values = frame.getValues(variables);
@@ -25,7 +30,7 @@ public class TemporariesCommand implements Command{
             for (Map.Entry<LocalVariable, Value> entry : values.entrySet()) {
                 Logger.log(entry.getKey().name() + " -> " + entry.getValue());
             }
-            return values;
+            model.setTemporaries(values);
         } catch (AbsentInformationException e) {
             throw new RuntimeException(e);
         }

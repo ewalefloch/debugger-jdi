@@ -5,6 +5,7 @@ import com.sun.jdi.StackFrame;
 import com.sun.jdi.event.LocatableEvent;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class SenderCommand implements Command{
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         LocatableEvent event = (LocatableEvent) debugger.getEvent();
         List<StackFrame> stack = null;
         try {
@@ -27,10 +28,10 @@ public class SenderCommand implements Command{
         }
         if (stack.size() < 2){
             Logger.log("Est le main");
-            return null;
+            return;
         }
         StackFrame frame = stack.get(1);
-        return frame.thisObject();
+        model.setSender(frame.thisObject());
     }
 
     @Override

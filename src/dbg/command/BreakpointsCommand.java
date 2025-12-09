@@ -3,6 +3,7 @@ package dbg.command;
 import com.sun.jdi.request.BreakpointRequest;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 
@@ -14,12 +15,12 @@ public class BreakpointsCommand implements Command {
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         List<BreakpointRequest> breakpoints = debugger.getVM().eventRequestManager().breakpointRequests();
 
         if (breakpoints.isEmpty()) {
             Logger.log("Aucun point d'arrêt configuré.");
-            return breakpoints;
+            return;
         }
 
         Logger.log("--- Liste des Breakpoints actifs ---");
@@ -32,7 +33,7 @@ public class BreakpointsCommand implements Command {
                 Logger.log(" -> " + locationStr);
             }
         }
-        return breakpoints;
+        model.setBreakpoints(breakpoints);
     }
 
     @Override

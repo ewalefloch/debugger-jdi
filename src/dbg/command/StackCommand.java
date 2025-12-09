@@ -4,6 +4,7 @@ import com.sun.jdi.*;
 import com.sun.jdi.event.LocatableEvent;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class StackCommand implements Command{
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         LocatableEvent event = (LocatableEvent) debugger.getEvent();
         try {
             List<StackFrame> frames = event.thread().frames();
@@ -26,7 +27,7 @@ public class StackCommand implements Command{
                         + "." + frame.location().method().name()
                         + ":" + frame.location().lineNumber());
             }
-            return frames;
+            model.setStacks(frames);
         } catch (IncompatibleThreadStateException e) {
             throw new RuntimeException(e);
         }

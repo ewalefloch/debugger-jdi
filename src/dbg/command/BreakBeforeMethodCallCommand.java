@@ -6,6 +6,7 @@ import com.sun.jdi.ReferenceType;
 import com.sun.jdi.request.BreakpointRequest;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 
@@ -17,9 +18,9 @@ public class BreakBeforeMethodCallCommand implements Command {
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         if (args.length < 2) {
-            return null;
+            return;
         }
 
         String methodName = args[1];
@@ -39,7 +40,7 @@ public class BreakBeforeMethodCallCommand implements Command {
 
                     Logger.log("Breakpoint installé au début de la méthode : "
                             + targetClass.name() + "." + methodName);
-                    return bpReq;
+                    return;
 
                 } catch (Exception e) {
                     Logger.log("Erreur lors de la création du breakpoint sur la méthode " + methodName);
@@ -48,8 +49,6 @@ public class BreakBeforeMethodCallCommand implements Command {
         }
 
         Logger.log("Méthode '" + methodName + "' introuvable dans les classes utilisateur chargées.");
-
-        return null;
     }
 
     @Override

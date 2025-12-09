@@ -11,6 +11,7 @@ import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.Location;
 import dbg.command.*;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -94,8 +95,8 @@ public class ScriptableDebugger {
                 }
                 if (event instanceof LocatableEvent){
                     currentEvent = event;
-
-                    processCommand();
+                    DebugModel model = new DebugModel(vm, (LocatableEvent) currentEvent);
+                    processCommand(model);
                 }
 
                 if (event instanceof BreakpointEvent) {
@@ -105,14 +106,13 @@ public class ScriptableDebugger {
                         System.out.println("Breakpoint unique supprimé.");
                     }
                 }
-
                 vm.resume();
             }
         }
     }
 
     public BreakpointRequest setBreakPoint (String className , int lineNumber ) throws AbsentInformationException {
-        for ( ReferenceType targetClass : vm.allClasses())
+        for (ReferenceType targetClass : vm.allClasses())
             if(targetClass.name().equals(className)){
                 Location location = targetClass.locationsOfLine(lineNumber).get(0);
                 BreakpointRequest bpReq = vm.eventRequestManager().createBreakpointRequest(location);
@@ -122,7 +122,7 @@ public class ScriptableDebugger {
         return null;
     }
 
-    public void processCommand() {
+    public void processCommand(DebugModel model) {
         Scanner sc = new Scanner(System.in);
 
         boolean keepWaiting = true;
@@ -134,7 +134,7 @@ public class ScriptableDebugger {
                 String[] parts = input.split(" ");
                 String commandKey = parts[0].toLowerCase();
 
-                keepWaiting = intepreter.execute(commandKey,parts);
+                keepWaiting = intepreter.execute(model,commandKey,parts);
 
             }
         }

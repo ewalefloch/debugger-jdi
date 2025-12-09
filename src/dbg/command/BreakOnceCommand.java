@@ -4,6 +4,7 @@ import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.request.BreakpointRequest;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 public class BreakOnceCommand implements Command {
     private final ScriptableDebugger debugger;
@@ -18,9 +19,9 @@ public class BreakOnceCommand implements Command {
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         if (args.length < 3) {
-            return null;
+            return;
         }
 
         String className = args[1];
@@ -39,8 +40,6 @@ public class BreakOnceCommand implements Command {
         } else {
             Logger.log("Erreur lors de la création du breakpoint.");
         }
-
-        return bpReq;
     }
 
     @Override

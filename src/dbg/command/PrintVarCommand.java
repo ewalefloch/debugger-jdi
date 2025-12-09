@@ -4,6 +4,7 @@ import com.sun.jdi.*;
 import com.sun.jdi.event.LocatableEvent;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 public class PrintVarCommand implements Command {
     private final ScriptableDebugger debugger;
@@ -13,14 +14,14 @@ public class PrintVarCommand implements Command {
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         if (args.length < 2) {
             Logger.log("Erreur : Nom de variable manquant. Usage : print-var <variableName>");
-            return null;
+            return;
         }
 
         String varName = args[1];
-        StackFrame frame = (StackFrame) new FrameCommand(debugger).execute(args);
+        StackFrame frame = model.getCurrentFrame();
 
         LocalVariable localVariable = null;
 
@@ -32,13 +33,12 @@ public class PrintVarCommand implements Command {
 
         if (localVariable == null) {
             Logger.log("Erreur : Variable '" + varName + "' introuvable dans la frame courante.");
-            return null;
+            return;
         }
 
         Value value = frame.getValue(localVariable);
 
         Logger.log(varName + " -> " + value.toString());
-        return value;
     }
 
     @Override

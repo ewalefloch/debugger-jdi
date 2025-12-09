@@ -1,6 +1,8 @@
 package dbg.command;
 
+import dbg.model.DebugModel;
+
 public interface Command {
-    Object execute(String[] args);
+    void execute(DebugModel model, String[] args);
     boolean keepWaiting();
 }

@@ -3,6 +3,7 @@ package dbg.command;
 import com.sun.jdi.*;
 import com.sun.jdi.event.LocatableEvent;
 import dbg.ScriptableDebugger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 import java.util.Map;
@@ -15,12 +16,12 @@ public class ReceiverVariablesCommand implements Command {
     }
 
     @Override
-    public Object execute(String[] args) {
-            ObjectReference thisObject = (ObjectReference) new ReceiverCommand(debugger).execute(args);
+    public void execute(DebugModel model, String[] args) {
+            ObjectReference thisObject = model.getCurrentReceiver();
 
             if (thisObject == null) {
-                System.out.println("Pas de variables d'instance");
-                return null;
+                System.out.println("Pas de variables d'instance ou non init");
+                return;
             }
 
             ReferenceType referenceType = thisObject.referenceType();
@@ -33,7 +34,7 @@ public class ReceiverVariablesCommand implements Command {
             for (Map.Entry<Field, Value> entry : values.entrySet()) {
                 System.out.println("  " + entry.getKey().name() + " -> " + entry.getValue());
             }
-            return values;
+            model.setVariableInstance(values);
     }
 
     @Override

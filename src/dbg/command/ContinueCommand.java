@@ -2,6 +2,7 @@ package dbg.command;
 
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 public class ContinueCommand implements Command {
     private final ScriptableDebugger debugger;
@@ -10,9 +11,9 @@ public class ContinueCommand implements Command {
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
         Logger.log("continue execution");
-        return null;
+        return;
     }
 
     @Override

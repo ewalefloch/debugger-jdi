@@ -4,6 +4,7 @@ import com.sun.jdi.*;
 import com.sun.jdi.event.LocatableEvent;
 import dbg.ScriptableDebugger;
 import dbg.log.Logger;
+import dbg.model.DebugModel;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ public class ArgumentsCommand implements Command{
     }
 
     @Override
-    public Object execute(String[] args) {
+    public void execute(DebugModel model, String[] args) {
             Location location = ((LocatableEvent) debugger.getEvent()).location();
         try {
             StackFrame frame = ((LocatableEvent) debugger.getEvent()).thread().frame(0);
@@ -28,7 +29,7 @@ public class ArgumentsCommand implements Command{
                 Logger.log(entry.getKey().name() + " -> " + entry.getValue());
             }
 
-            return args;
+            model.setCurrentArgs(argsLocal);
 
         } catch (AbsentInformationException | IncompatibleThreadStateException e) {
             throw new RuntimeException(e);
